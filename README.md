@@ -496,6 +496,13 @@ For more about tidyverse packages:
 ggplot2_vignettes: By Jordan Tapke 
 =======
 Zhouxin Shi CREATE - function(read_csv,filter,select), data(Public Use Microdata Sample)
+Zhouxin Shi Extended - function(filter,arrange,summarize )
+- arrange()
+orders the rows of a data frame by the values of selected columns.
+- filter()
+this function is used to subset a data frame, retaining all rows that satisfy your conditions. To be retained, the row must produce a value of TRUE for all conditions..
+- summarize()
+creates a new data frame. It will have one (or more) rows for each combination of grouping variables; if there are no grouping variables, the output will have a single row summarising all observations in the input.  
 =======
 
 ### group_split() vignette by Jack Wright
