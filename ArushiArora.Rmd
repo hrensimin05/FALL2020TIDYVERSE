@@ -2,11 +2,7 @@
 title: "TidyVerse CREATE"
 author: "Arushi Arora"
 date: "10/23/2020"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output: openintro::lab_report
 ---
 
 
@@ -84,10 +80,79 @@ steakdata4 <- steakdata3 %>%
   mutate(hh_income = as.factor(hh_income)) %>%
   mutate(Education = as.factor(Education)) %>%
   mutate(location = as.factor(location))
-
-  head(steakdata4)
 ```
 
 
+# Tidyverse Extend
+
+Karim here to add some further analysis, Arushi has done a great job analyzing How Americans Like Their Steak. 
+
+```{r}
+#Lets remove the N/A from the following columns
+steakdata4 <- subset(steakdata4, Age != "N/A")
+steakdata4 <- subset(steakdata4, Education != "N/A")
+steakdata4 <- subset(steakdata4, hh_income != "N/A")
+
+head(steakdata4)
+```
 
 
+## Subset distinct observations from the data
+
+```{r}
+#remove respondentID column
+steakdata5 <- steakdata4[2:15]
+steakdata6 <- dplyr::distinct(steakdata5)
+
+head(steakdata6)
+```
+
+## Extract a single colum from data
+```{r}
+#extract drink_alcohol column by index
+steakdata7 <- dplyr::pull(steakdata6, 3)
+
+#extract drink_alcohol column by negative index
+steakdata7 <- dplyr::pull(steakdata6, -12)
+
+#extract drink_alcohol column by name
+steakdata7 <- dplyr::pull(steakdata6, drink_alcohol)
+
+head(steakdata7)
+```
+
+## Change the column order
+
+```{r}
+#move Gender column to second column using .before
+steakdata8 <- dplyr::relocate(steakdata4, Gender, .before = lottery)
+
+#move Gender column to second column using .after
+steakdata8 <- dplyr::relocate(steakdata4, Gender, .after = RespondentID)
+
+head(steakdata8)
+=======
+Lets check how Age, Education, and steak_prep by building a animated bubble chart using the 'gganimate' library to extend ggplot2's functionality.
+
+```{r, message = FALSE}
+# package to extend ggplot2 functionality
+library(gganimate)
+# package that will display the animated output when you knit to HTML
+library(gifski)
+```
+
+
+```{r warning=FALSE}
+# Setup basic ggplot barchart
+ggplot(steakdata4, aes(x= Age, y=Education, fill=Education)) + 
+  geom_bar(stat='identity') +
+  theme(legend.position="bottom", legend.box="vertical", legend.margin=margin()) +
+  theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank()) +
+  guides(fill=guide_legend(nrow=2,byrow=TRUE)) +
+  coord_flip() +
+  
+# steak_prep as the variable it transitions on
+  transition_states(steak_prep) +
+  ease_aes('sine-in-out') + 
+  labs(title = 'How Americans like their steak: {closest_state}', x = 'Age', y = 'Level of Education')
+```

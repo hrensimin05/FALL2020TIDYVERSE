@@ -1,11 +1,31 @@
 ---
-title: "Tidyverse"
-output: html_document
+title: "TidyVerse EXTEND Assignment"
+author: "Jered Ataky"
+date: "2020-11-6"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+## Highlight
+
+In this "Tidyverse EXTEND" recipe,
+we are going to extend the work created by "Zhouxin Shi".
+
+There will be two parts: "The original recipe: tidyverse CREATE" which is the vignette
+created by Zhouxin, and "Tidyverse EXTEND" which is our
+additional work (code) to the original recipe.
+
+
+## 1. Original recipe: tidyverse CREATE
+
 
 ### Tidyverse
 
@@ -20,7 +40,7 @@ Kaggle datasets.
 Your task here is to Create an Example.  Using one or more TidyVerse packages, and any dataset from fivethirtyeight.com or Kaggle, create a programming sample “vignette” that demonstrates how to use one or more of the capabilities of the selected TidyVerse package with your selected dataset. (25 points)
 
 
-#### Read data using readr::read_csv
+### Read data using readr::read_csv
 
 ```{r }
 library(tidyverse)
@@ -29,18 +49,140 @@ pums <- read_csv("https://raw.githubusercontent.com/szx868/data607/master/Tidyve
 
 
 ```
-#### Using dplyr::select to have column you needed
+### Using dplyr::select to have column you needed
 
 ```{r}
 select(pums,c("Age","SEX","Total_Personal_Earnings","Total_Personal_Income"))
 
 ```
 
-#### Using dplyr::filter to age
+### Using dplyr::filter to age
 
 ```{r}
 filter(pums,Age > 36)
 
 ```
 
+#### Select with blacklist vs conventional whitelist
+Lets extend the 'Select' function we just covered. We can use this function to select a subset of columns but also excluding explicit columns. Sometimes this leads to less syntax, especially when you want to keep a majority of the columns.
+
+On top of that we will also include the `head` function so that we can view a sample of our data, without running the entire dataframe into memory.
+
+```{r}
+pums %>%
+  select(-Worker_Class, -School_Attending) %>%
+    head()
+```
+
+#### Renaming Columns with Select
+Select can also be used to rename columns. However, that drops all the columns that are not mentioned. 
+
+
+```{r}
+pums %>%
+  select(gender = SEX,
+         salary = Total_Personal_Earnings,
+         other_income = Total_Personal_Income
+         ) %>%
+  head()
+
+```
+
+##### Select a subset and rename
+But what if you only want to rename some of the columns and also maintain a subset of the data? In that case, you can use the rename function.
+
+```{r}
+pums %>%
+  # selects subset of original dataframe
+  select(-Worker_Class, -School_Attending) %>%
+  # renames columns with new header
+    rename(gender = SEX,
+           salary = Total_Personal_Earnings,
+           other_income = Total_Personal_Income
+           ) %>%
+  # displays only first 5 rows
+      head(5)
+
+
+```
+ 
+=======
+## 2. Tidyverse EXTEND
+
+
+### Introduction
+
+As this vignette is about dplyr, we are going to extend this work by adding 
+different other functions of the same package.
+The first part explored the functions select() and filter(), here we are going 
+to add three other main verbs of dplyr: arrange(), mutate(), and summarize().
+
+Throughout this second part of the vignette, we make use of the subset of pums
+data set created using select() function as in part 1 above.
+
+
+```{r}
+
+df <- pums %>%
+  select("Age","SEX","Total_Personal_Earnings","Total_Personal_Income")
+
+```
+
+### arrange(): Reordering the cases
+
+Arrange function reorders the cases in the order that you want.
+Let say you want to reorder pums data frame descending order, you might write: 
+
+Arrange function lets reordering the cases in the order that you want.
+Let say that you want to reorder the head of previous selected variables data frame (data2)
+in descending order of students math score, you might write:
+
+```{r}
+
+# Reorder in descending order of math score
+
+df %>%
+  arrange(desc(Age))
+```
+
+
+### mutate(): creating new variables that are functions of existing variables
+
+The mutate function creates new variables that are functions of the existing variables. 
+Let say you want to create "Total_Other_Sources_of_Income" variable which is the difference
+between "Total_Personal_Income" and "Total_Personal_Earnings", you might write:
+
+```{r}
+df %>%
+  mutate(Total_Other_Sources_of_Income 
+         = Total_Personal_Income - Total_Personal_Earnings)
+```
+
+
+Let say you are interesting in keeping only the new variable created from the existing variables,
+meaning keeping only "Total_Other_Sources_of_Income" variable but neither
+"Total_Personal_Income" nor "Total_Personal_Earnings",
+you might use another function called transmuse():
+
+```{r}
+df1 <- df %>%
+  transmute(Age, SEX, 
+            Total_Other_Sources_of_Income = Total_Personal_Income - Total_Personal_Earnings )
+df1
+```
+
+### summarize(): summarizing multiple values to a single value
+
+summarize() will be used with group_by function group_by which helps grouping the data set by a variable. 
+Let say you are interested in the summary of the average total personal income by sex, you might write:
+
+```{r}
+
+# Note that we remove missing values in the calculation to calculate the average
+
+df %>%
+  group_by(SEX) %>%
+  summarize(average_total_income = 
+              sum(Total_Personal_Income, na.rm = TRUE) / n())
+```
 

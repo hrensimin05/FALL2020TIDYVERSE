@@ -1,3 +1,163 @@
+=======
+Update: 7 November 2020
+Author: Cameron Smith
+Summary: Added examples illustrating 'mutate' and 'transmute' functions to the original submission by Peter Fernandes
+=======
+
+=======
+Orli Khaimova extending Douglas Barley's Vignette
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Kiva Loans
+
+Kiva loans are extremely small loans, called microloans, made to entrepreneurs
+who need small seed loans to start their businesses. The loans are made in order
+to help better communities one entrepreneur at a time. The dataset used in this 
+vignette consists of a set of Kiva loans made in calendar year 2016 around the 
+globe. For the purpose of this vignette, the loans data was pared down to make
+the file size < 25 MB.
+```{r }
+kiva <- read.csv("https://raw.githubusercontent.com/douglasbarley/FALL2020TIDYVERSE/TidyverseVignette/kiva_loans.csv")
+
+library(tidyverse)
+glimpse(kiva)
+```
+
+The 2016 data includes 197,236 observations of 14 variables.
+
+## Tidyverse group_by() function
+
+The Tidyverse contains many packages that are useful in R for cleaning and 
+exploring data. When faced with a fairly long dataset, such as the Kiva set in 
+this example, it is useful to be able to count the data in a single column while
+grouping the counts according to discrete values in that column. The `group_by` 
+function in the `dplyr` corner of the Tidyverse helps to do just that. This helps
+a programmer quickly explore what is in the data.
+
+For example, it could be useful to know which countries received the most loans.
+```{r message= FALSE}
+countries <- data.frame(kiva) %>%
+  group_by(country) %>%
+      summarize(count_loans = n())
+
+head(countries)
+```
+
+## Visualizing the results
+
+Once we have a concise count of loans by country, it is helpful to be able to 
+visualize
+all of the results in a single graphic. The `ggplot()` function, also part of the
+Tidyverse, is very helpful in
+the visualization realm.
+```{r}
+ggplot(data = countries) + geom_col(aes(x = country, y = count_loans)) +
+  ggtitle("Loans Disbursed by Country") +
+  coord_flip() +  
+  ylab('Loan Count') +
+  xlab('Country') 
+
+```
+
+There are so many countries where loans were disbursed that it is difficult to 
+read each country's name. In order to simplify the listing and visualizations, 
+let's identify the top 10 countries that received loans.
+```{r}
+countries_top10 <- head(arrange(countries,desc(count_loans)), n = 10)
+countries_top10
+```
+
+Now we can graph the top 10 countries that received loans.
+```{r}
+ggplot(data = countries_top10) + geom_col(aes(x = reorder(country, count_loans), count_loans)) +
+  ggtitle("Loans Disbursed by Country") +
+  coord_flip() +  
+  ylab('Loan Count') +
+  xlab('Country')
+```
+
+That's much more legible! Now we can see that the Philippines received the most 
+Kiva loans of any country in 2016.
+
+--------------------------------------------------------------------------------
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+--------------------------------------------------------------------------------
+
+## Tidyverse EXTEND
+
+Orli Khaimova extending Douglas' vignette
+
+In order to see the order of which countries received the most loans more efficiently,
+we can sort the data in descending order, from greatest to least. We can use the 
+`arrange` function from the `dplyr` package. It orders the rows of a data frame by
+the specified column. By default, it sorts from least to greatest, so we would 
+have to specify descending order. Furthermore, a `by_group` argument can be 
+used if we want to group variables.
+
+```{r}
+countries <- countries %>%
+  arrange(desc(count_loans))
+
+head(countries)
+```
+
+From here, we can see that Phillipines, Kenya, and Cambodia have the most loans.
+
+
+We can also look further into those countries to see what the loans were taken 
+out for. To do so, we  will:
+
+* `add_count` to create a new column and find counts of variables group-wise
+  + It is equivalent to `group_by` and `mutate` used together
+* `mutate` to add an extra column in the data set with ranks
+* `dense_rank` to return the rank of rows 
+  + It will rank the rows, in descending order, with no gaps. This means when 
+    there are ties, it will give it the same rank.
+* `filter` to subset rows using column values
+  + In this case, we are selecting the top 5 ranks or groups with largest loan 
+    counts
+* `as.factor` from `base` to factor the sector column
+* `group_by`, `mutate`, and `ungroup` to find the counts for each sector by 
+  country
+* `group_by`, `mutate`, and `ungroup` to give ranks to each sector by country
+* `filter` to find the top 5 sectors for each country
+
+We then proceed to create a graph for the top 5 sectors in those 5 countries. We
+can see the distribution of the loans by their sector types. We can use 
+`facet_Wrap` to create a separate graph for each country.
+
+
+```{r}
+top_5_countries <- kiva %>%
+  add_count(country, name = "count_loans") %>%
+  mutate(rank = dense_rank(desc(count_loans))) %>%
+  filter(rank %in% 1:5) %>%
+  mutate(sector = as.factor(sector)) %>%
+  group_by(country, sector) %>%
+  mutate(sector_count = n()) %>%
+  ungroup() %>%
+  group_by(country) %>%
+  mutate(sector_rank = dense_rank(desc(sector_count))) %>%
+  ungroup() %>%
+  filter(sector_rank %in% 1:5)
+  
+
+ggplot(top_5_countries) + 
+  geom_bar(aes(x = sector, y = count_loans, fill = country), stat = "identity") +
+  coord_flip() +
+  facet_wrap(~country, scales = "free", ncol = 2) +
+  ggtitle("Distribution of Activities for Loans") +
+  theme(axis.text.x = element_blank(), axis.ticks = element_blank(), legend.position = "none") +
+  ylab("") +
+  xlab("Sector")
+```
+
+
+=======
+
 # Karim Hommod
 My analysis includs analysing the sales of video games all around the world, I used more than one Tidyverse packges, and collected the data from Kaggle. 
 =======
@@ -141,6 +301,118 @@ I decided to pick a data set regarding the senate race fundamentals. Using dplyr
 =======
 CUNY DATA 607 TIDYVERSE Collaborative project
 
+---
+title: "Tidyverse CREATE Assignment"
+author: "Shana Green"
+date: "10/25/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Assignment
+
+In this assignment, you’ll practice collaborating around a code project with GitHub.  You could consider our collective work as building out a book of examples on how to use TidyVerse functions.
+
+[GitHub repository](https://github.com/acatlin/FALL2020TIDYVERSE)
+
+[FiveThirtyEight.com](https://data.fivethirtyeight.com/) datasets.
+
+[Kaggle datasets](https://www.kaggle.com/datasets)
+
+Your task here is to Create an Example.  Using one or more TidyVerse packages, and any dataset from fivethirtyeight.com or Kaggle, create a programming sample “vignette” that demonstrates how to use one or more of the capabilities of the selected TidyVerse package with your selected dataset. (25 points)
+
+Later (see next assignment below), you'll be asked to extend an existing vignette.  Using one of your classmate’s examples (as created above), you'll then extend his or her example with additional annotated code. (15 points)
+
+You should clone the provided repository.  Once you have code to submit, you should make a pull request on the shared repository.  You should also update the README.md file with your example.
+
+After you’ve created your vignette, please submit your GitHub handle name in the submission link provided below. 
+
+You should complete your submission on the schedule stated in the course syllabus.
+
+## Data
+
+The dataset I chose came from FiveThirtyEight.com article [We Watched 906 Foul Balls To Find Out Where The Most Dangerous Ones Land](https://fivethirtyeight.com/features/we-watched-906-foul-balls-to-find-out-where-the-most-dangerous-ones-land/). 
+
+
+```{r}
+library(tidyverse)
+```
+
+## Reading the Data from Github
+
+```{r}
+
+foul<-read.csv("https://raw.githubusercontent.com/fivethirtyeight/data/master/foul-balls/foul-balls.csv", na.strings=c("NA", "NULL"))
+
+head(foul)
+```
+
+
+## Renaming Data Columns
+```{r}
+names(foul)<-c("Matchup","Game_Date", "Type_of_Hit","Exit_Velocity", "Predicted_Zone", "Camera_Zone", "Used_Zone")
+
+colnames(foul)
+```
+
+In order to have a general visualization of the designated zones, I attached a photo from the article [We Watched 906 Foul Balls To Find Out Where The Most Dangerous Ones Land](https://fivethirtyeight.com/features/we-watched-906-foul-balls-to-find-out-where-the-most-dangerous-ones-land/).
+
+![Generic Stadium Map](stadium map.png)
+
+
+## Dplyr
+
+I will use dplyr from the Tidyverse package.
+
+
+### filter()
+
+As a huge baseball fan, I wanted to filter out the outermost predicted zone and compare it to the exit velocity.
+
+```{r}
+
+foul %>%
+    filter(Predicted_Zone=="7"|Predicted_Zone=="6")
+```
+
+### arrange()
+
+Since this is a large data set, I wanted to take a look at the top 20 highest exit velocities. 
+
+```{r}
+foul %>%
+    arrange(desc(Exit_Velocity))%>%
+    head(20)
+
+```
+
+
+### summarise()
+
+I used the summarize function from dplyr to generate some statistics for the exit velocity. 
+
+```{r}
+foul_info<-na.omit(foul)
+```
+
+```{r}
+foul_sum <- group_by(foul_info, Type_of_Hit)
+```
+
+```{r}
+foul_sum <- summarise(foul_sum,Min=min(Exit_Velocity),Max = max(Exit_Velocity),Median=median(Exit_Velocity), Mean=round(mean(Exit_Velocity),1))
+
+```
+
+```{r}
+foul_sum<-as.data.frame(foul_sum)
+foul_sum
+
+```
+=======
 The accompanying vignette is a breif introduct to the GGplot2 package.  
 
 GGplot2 is a grammatically layered approch towards visualizations.  The combinations of the layers, features, and options are nearly endless, providing a fully customizable visual to cater any data set.  For this example, we will be using categorical information based on a Holloween Candy survey.
@@ -496,6 +768,7 @@ For more about tidyverse packages:
 ggplot2_vignettes: By Jordan Tapke 
 =======
 Zhouxin Shi CREATE - function(read_csv,filter,select), data(Public Use Microdata Sample)
+
 Zhouxin Shi Extended - function(filter,arrange,summarize )
 - arrange()
 orders the rows of a data frame by the values of selected columns.
@@ -503,6 +776,10 @@ orders the rows of a data frame by the values of selected columns.
 this function is used to subset a data frame, retaining all rows that satisfy your conditions. To be retained, the row must produce a value of TRUE for all conditions..
 - summarize()
 creates a new data frame. It will have one (or more) rows for each combination of grouping variables; if there are no grouping variables, the output will have a single row summarising all observations in the input.  
+=======
+
+Ellen Kim EXTEND - Using select with exclusions, and renaming while subsetting 
+
 =======
 
 ### group_split() vignette by Jack Wright
@@ -605,3 +882,158 @@ Change Log:
 26 October: Added vignette w/ examples for purrr and forcats, Cameron Smith
 
 palmorezm Extended Zhouxin Shi's dplyr filter vignette by adding another example of the filter function's usage and adding detail about the function and its arguments. Data used was identical to that of Zhouxin Shi's create vignette and it was used build on the existing examples. No changes were made to isolate dplyr::filter vigette. As such the read_csv and select functions remain as additional background for the extended portion of this vignette. 
+
+
+=======
+---
+title: "TidyVerse EXTEND Assignment"
+author: "Jered Ataky"
+date: "2020-11-6"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Highlight
+
+In this "Tidyverse EXTEND" recipe,
+we are going to extend the work created by "Zhouxin Shi".
+
+There will be two parts: "The original recipe: tidyverse CREATE" which is the vignette
+created by Zhouxin, and "Tidyverse EXTEND" which is our
+additional work (code) to the original recipe.
+
+
+## 1. Original recipe: tidyverse CREATE
+
+
+### Tidyverse
+
+In this assignment, you’ll practice collaborating around a code project with GitHub.  You could consider our collective work as building out a book of examples on how to use TidyVerse functions.
+
+GitHub repository:  https://github.com/acatlin/FALL2020TIDYVERSE
+
+FiveThirtyEight.com datasets.
+
+Kaggle datasets. 
+
+Your task here is to Create an Example.  Using one or more TidyVerse packages, and any dataset from fivethirtyeight.com or Kaggle, create a programming sample “vignette” that demonstrates how to use one or more of the capabilities of the selected TidyVerse package with your selected dataset. (25 points)
+
+
+### Read data using readr::read_csv
+
+```{r }
+library(tidyverse)
+
+pums <- read_csv("https://raw.githubusercontent.com/szx868/data607/master/Tidyverse/2019PUMS_PERSON_DATA_NY.csv")
+
+
+```
+### Using dplyr::select to have column you needed
+
+```{r}
+select(pums,c("Age","SEX","Total_Personal_Earnings","Total_Personal_Income"))
+
+```
+
+### Using dplyr::filter to age
+
+```{r}
+filter(pums,Age > 36)
+
+```
+
+
+## 2. Tidyverse EXTEND
+
+
+### Introduction
+
+As this vignette is about dplyr, we are going to extend this work by adding 
+different other functions of the same package.
+The first part explored the functions select() and filter(), here we are going 
+to add three other main verbs of dplyr: arrange(), mutate(), and summarize().
+
+Throughout this second part of the vignette, we make use of the subset of pums
+data set created using select() function as in part 1 above.
+
+
+```{r}
+
+df <- pums %>%
+  select("Age","SEX","Total_Personal_Earnings","Total_Personal_Income")
+
+```
+
+### arrange(): Reordering the cases
+
+Arrange function reorders the cases in the order that you want.
+Let say you want to reorder pums data frame descending order, you might write: 
+
+Arrange function lets reordering the cases in the order that you want.
+Let say that you want to reorder the head of previous selected variables data frame (data2)
+in descending order of students math score, you might write:
+
+```{r}
+
+# Reorder in descending order of math score
+
+df %>%
+  arrange(desc(Age))
+```
+
+
+### mutate(): creating new variables that are functions of existing variables
+
+The mutate function creates new variables that are functions of the existing variables. 
+Let say you want to create "Total_Other_Sources_of_Income" variable which is the difference
+between "Total_Personal_Income" and "Total_Personal_Earnings", you might write:
+
+```{r}
+df %>%
+  mutate(Total_Other_Sources_of_Income 
+         = Total_Personal_Income - Total_Personal_Earnings)
+```
+
+
+Let say you are interesting in keeping only the new variable created from the existing variables,
+meaning keeping only "Total_Other_Sources_of_Income" variable but neither
+"Total_Personal_Income" nor "Total_Personal_Earnings",
+you might use another function called transmuse():
+
+```{r}
+df1 <- df %>%
+  transmute(Age, SEX, 
+            Total_Other_Sources_of_Income = Total_Personal_Income - Total_Personal_Earnings )
+df1
+```
+
+### summarize(): summarizing multiple values to a single value
+
+summarize() will be used with group_by function group_by which helps grouping the data set by a variable. 
+Let say you are interested in the summary of the average total personal income by sex, you might write:
+
+```{r}
+
+# Note that we remove missing values in the calculation to calculate the average
+
+df %>%
+  group_by(SEX) %>%
+  summarize(average_total_income = 
+              sum(Total_Personal_Income, na.rm = TRUE) / n())
+```
+
+
+
+
+
+=======
+
+

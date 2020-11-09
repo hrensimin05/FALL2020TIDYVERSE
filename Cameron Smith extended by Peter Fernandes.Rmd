@@ -1,0 +1,115 @@
+---
+title: "Tidyverse Assignment - Purrr and Forcats and Vignette"
+author: "Cameron Smith and extended by Peter Fernandes"
+date: "10/26/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Introduction
+
+This vignette is focused on the purrr and forcats packages from the Tidyverse, and were chosen based on the simple logic that I am the least unfamiliar with them so it seemed like a good opportunity to change that.
+
+### Load packages
+
+Loading the two packages directly, though you could also load the whole tidyverse package
+
+```{r}
+library(purrr)
+library(forcats)
+library(dplyr)
+```
+
+### Load the data
+
+I used a dataset from Kaggle with information on Indian cuisine (link and info below.  It is stored in Github for reproducibility.
+
+https://www.kaggle.com/nehaprabhavalkar/indian-food-101
+Version 2, Accessed 26 October 2020
+
+```{r}
+file <- "https://raw.githubusercontent.com/cwestsmith/cuny-msds/master/datasets/indian_food.csv"
+df <- read.csv(file, header = TRUE)
+# Checking structure of new data frame.  Lots of factors, which is good for this vignette
+str(df)
+```
+
+### Example 1: Forcats
+
+Forcats is focused on making it easier to work with factors in R.  One such function is fct_infreq(), which reorders a factor based on the frequency of values it has.  In the example below I will use this function to reorder the flavor_profile variable based on the frequency of its levels in the dataset.
+
+```{r}
+# View current structure of flavor_profile factor
+levels(df$flavor_profile)
+# View summary of each flavor_profile based on # of entries
+df %>% group_by(flavor_profile) %>% summarise(n())
+# Re-order the flavor_profile
+df$flavor_profile <- fct_infreq(df$flavor_profile)
+# Now view it again, which should match the order per the summary above
+levels(df$flavor_profile)
+```
+
+### Example 2: purrr
+
+Purr is focused on making it easier to work with functions and vectors in R.  One such function is pluck() which provides a flexible way to quickly extract an element.  It has a sister function named chuck() which is similar except that it throws errors when something does not exist, rather than simply returning NULL.
+
+```{r}
+# Create an example list
+example_list <- as.list(df$ingredients)
+# Pluck an element by index
+pluck(example_list, 1)
+# Searching for element that does not exist - pluck returns NULL
+pluck(example_list, 100000)
+# But chuck returns an error
+#chuck(example_list, 100000)
+```
+
+### Conclusion
+
+In conclusion Forcats and Purr both include a wide array of useful functions which make it easier to work with various types of data in R.
+
+# From here onwards Extended by -- Peter Fernandes
+
+## Capability 1 stringr::str_subset
+
+Creating subset from the main set
+
+```{r warning=FALSE}
+# str_subset(string, pattern, negate = FALSE)
+
+#flavor profile starting with - s
+stringr::str_subset(df$flavor_profile, "^s")
+```
+
+## Capability 2 stringr::str_sort
+
+Sort character vector
+
+```{r}
+#str_sort(x, decreasing = FALSE, na_last = TRUE, locale = “en”,numeric = FALSE, …)
+
+#decreasing= FALSE for Ascending order sort
+stringr::str_sort(df$name, decreasing = FALSE)
+```
+
+```{r}
+#decreasing= TRUE for Descending order sort
+stringr::str_sort(df$name, decreasing = TRUE)
+```
+
+## Capability 3 ggplot2::ggplot
+
+ggplot provides extensive data visualization options which helps to understand the underlying data easily and quickly
+
+```{r}
+library(ggplot2)
+df1 <- df %>% group_by(flavor_profile)
+ggplot(data = df1, aes(x=df1$flavor_profile,  y=df$prep_time)) + geom_bar(stat = "identity", fill = "steelblue") + xlab("Flavors") + ylab("Preparation time") + ggtitle("Flavors with Preparation time") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+

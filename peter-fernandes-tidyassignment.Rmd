@@ -1,6 +1,6 @@
 ---
 title: "Tidyverse CREATE Assignment"
-author: "Peter"
+author: "Peter (CREATE), and Cameron Smith (EXTEND)"
 date: "10/24/2020"
 output: html_document
 ---
@@ -9,7 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Assignment
+
+# Tidyverse CREATE section
 
 In this assignment, you’ll practice collaborating around a code project with GitHub.  You could consider our collective work as building out a book of examples on how to use TidyVerse functions.
 
@@ -21,21 +22,21 @@ https://www.kaggle.com/datasets datasets.
 
 Your task here is to <b>Create an Example.</b>  Using one or more TidyVerse packages, and any dataset from fivethirtyeight.com or Kaggle, create a programming sample “vignette” that demonstrates how to use one or more of the capabilities of the selected TidyVerse package with your selected dataset. (25 points)
 
-# Loading of required libraries
+## Loading of required libraries
 
 ```{r}
 library(tidyverse)
 ```
 
-# Dataset
+## Dataset
 
 https://www.kaggle.com/ronitf/heart-disease-uci
 
-# File on Github
+## File on Github
 
 https://raw.githubusercontent.com/petferns/607-week9/main/heart.csv
 
-# Capability1 readr::read_csv
+## Capability1 readr::read_csv
 
 First lets try to read the CSV file from GitHub using the read_csv function
 
@@ -56,7 +57,7 @@ system.time(d<-read_csv("https://raw.githubusercontent.com/petferns/607-week9/ma
 
 ```
 
-# Capability 2 dplyr::filter
+## Capability 2 dplyr::filter
 
 As the name suggests we can filter the rows from the dataframe using the filter function.
 We apply the filter to heart dataframe based on age column
@@ -65,7 +66,7 @@ We apply the filter to heart dataframe based on age column
 filter(heart,age > 45)
 ```
 
-# Capability 3 dplyr::select
+## Capability 3 dplyr::select
 
 Just as we filtered the rows of a dataframe in the above example, we can use select function to filter columns of the dataframe. If you want only specific columns rather than the whole set of columns we can use select function
 
@@ -73,3 +74,71 @@ Just as we filtered the rows of a dataframe in the above example, we can use sel
 select(heart,c("age","sex","chol"))
 ```
 
+# Tidyverse EXTEND Section
+
+Extend Section Author: Cameron Smith
+Date Submitted: 7 November 2020
+Quick Summary: Added mutate and transmute examples and cleaned updated the overall RMD structure a bit.
+
+## Introduction
+
+For the Data 607 Tidyverse Extend assignment I am extending the original vignette to demonstrate more functionality.  As demonstrated above in the original section with the read_csv, select, and filter functions from the Tidyverse, there are quite a few functions (arguably all) in the Tidyverse that largely mirror base R functions, but with slightly different syntax and intent.  
+
+Additional good examples of this are the 'mutate' and 'transmutate' functions which I will demonstrate below.
+
+## Dataset
+
+For this section I have used the Netflix Titles dataset from Kaggle, link and info below.  I have copied it into and loaded it from my personal Github account for reproducibility.
+
+https://www.kaggle.com/shivamb/netflix-shows
+Version 3, Accessed 7 November 2020.
+
+## Load the Data
+
+```{r}
+
+# Loading data from Github into new data frame
+df_extend <- read.csv("https://raw.githubusercontent.com/cwestsmith/cuny-msds/master/datasets/netflix_titles.csv")
+
+# Quick look at the new data frame to make sure it loaded ok
+str(df_extend)
+
+# Trim the data frame down a bit
+df_extend <- df_extend %>% select(type, title, release_year)
+
+# New look at the data frame to verify changes
+str(df_extend)
+```
+
+## Capability 4 dplyr::mutate
+
+As seen above, the data frame currently only has 3 columns: type, title, and release_year.  What if we wanted to add a new column based on the age of the movie (relative to the current year)?  Mutate is a good tool for this.  It adds new columns using a straightforward, simple syntax and preserves the old ones.  Example below.
+
+```{r}
+# Create variable containing the current year
+current_year <- as.numeric(format(Sys.time(), "%Y"))
+
+# Add new column and view the results for the first 5 movies
+# We can see that all original columns are still there, including the new one
+df_extend %>% 
+  mutate(movie_age = current_year - release_year)
+```
+
+## Capability 5: dplyr::transmute
+
+Transmute is very similar to mutate in that it is used to create new columns.  However, transmute does not preserve the original columns.  Example below.
+
+```{r}
+
+# Add new column with a shortened title and view the results
+# In this example we are using another Tidyverse function from the stringr package to shorten a string.
+
+# Unlike with mutate, we can see below that the original columns have been discarded and only the new column remains.  Essentially it acts like the select() function, only selecting the new column created.
+df_extend %>% 
+  transmute(short_title = str_trunc(title, width = 20))
+
+```
+
+## Conclusion for Tidyverse EXTEND section
+
+In addition to the functions highlighted in the CREATE section of this document, mutate() and transmute() are very useful.  They are very similar in what they do with one key difference - mutate preserves the original columns and transmute does not.

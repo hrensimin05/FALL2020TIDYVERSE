@@ -53,6 +53,24 @@ df$flavor_profile <- fct_infreq(df$flavor_profile)
 
 # Now view it again, which should match the order per the summary above
 levels(df$flavor_profile)
+
+
+
+
+# Josef Waples - practicing forcats functions
+
+# according to the forcats documentation, fct_inorder means by the order in which the factors first appear ... I'm not sure what "first" appear means -- I guess from the orginal downloaded data frame? 
+
+df$flavor_profile <- fct_inorder(df$flavor_profile)
+levels(df$flavor_profile)
+
+# fct_inseq is another in the family of functions that reorders.. I don't think there is a numeric value for each of these levels that is meaninful, however
+
+df$flavor_profile <- fct_inseq(df$flavor_profile)
+levels(df$flavor_profile)
+
+
+
 ```
 
 ### Example 2: purrr
@@ -72,6 +90,27 @@ pluck(example_list, 100000)
 
 # But chuck returns an error
 chuck(example_list, 100000)
+
+
+
+# Josef Waples - practicing purrr functions
+
+# practice the map function that is a part of purrr
+
+df %>%
+  split(.$diet) %>%
+  map(~ lm(cook_time ~ prep_time, data = .x)) %>%
+  map_dfr(~ as.data.frame(t(as.matrix(coef(.)))))
+  
+
+# practice using the discard function that is a part of purrr
+
+discard(df$state, grepl("-1", df$state))
+
+
+
+
+
 ```
 
 ### Conclusion
