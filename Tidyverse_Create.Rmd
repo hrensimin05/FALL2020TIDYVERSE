@@ -1,7 +1,9 @@
 
 ---
-title: "TidyVerse Create"
+title: "TidyVerse Extended"
 output: html_document
+author: "Zhouxin Shi"
+date: "2020-11-08"
 ---
 
 Overall:23/25
@@ -9,9 +11,10 @@ I think this part , "Write a vignette using more than one TidyVerse packages" is
 get data from 538 
 It looks like typo...I think you are getting data from fivethirtyeight
 ```{r}
+library("dplyr")
 source = 'https://raw.githubusercontent.com/fivethirtyeight/covid-19-polls/master/covid_approval_polls.csv'
 #read data into data frame
-df = read.csv(source)
+df <- read.csv(source)
 
 #I think the above 02 line can be resume with one as follow below
 df <- read.csv("https://raw.githubusercontent.com/fivethirtyeight/covid-19-polls/master/covid_approval_polls.csv")
@@ -33,6 +36,33 @@ new_df
 #the first argument should be the data set, the 2nd is the column you want to group by, and the third is if you want to sort or not.
 count(new_df, population, sort=TRUE)
 ```
+
+### Extended 
+Since this vignette is using dplyr, we will extend this work by adding 
+other different functions of dplyr (filter,summarize,arrange )
+
+- filter()
+
+```{r}
+new_df %>%
+    filter(sponsor!="")
+```
+
+- summarize()
+```{r}
+df2 <- new_df %>%
+  group_by(population) %>%
+  summarize(average_approve = 
+              sum(approve, na.rm = TRUE) / n())
+df2
+```
+- arrange()
+```{r}
+df2 %>%
+    arrange(desc(average_approve))%>%
+    head(20)
+```
+
 
 Demonstrate functions in tidyverse package ggplot2
 ```{r}
